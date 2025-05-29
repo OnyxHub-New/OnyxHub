@@ -1,1 +1,1 @@
-versionMM2 = 1.1
+versionMM2 = 1.0
