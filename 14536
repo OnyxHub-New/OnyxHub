@@ -1,7 +1,4 @@
--- Gui to Lua
--- Version: 3.2
 
--- Instances:
 
 local Gui = Instance.new("ScreenGui")
 local Main = Instance.new("Frame")
@@ -12,7 +9,7 @@ local UITextSizeConstraint_2 = Instance.new("UITextSizeConstraint")
 local Button = Instance.new("TextButton")
 local UITextSizeConstraint_3 = Instance.new("UITextSizeConstraint")
 
---Properties:
+
 
 Gui.Name = "Gui"
 Gui.Parent = gethui()
@@ -79,7 +76,7 @@ Button.TextWrapped = true
 UITextSizeConstraint_3.Parent = Button
 UITextSizeConstraint_3.MaxTextSize = 28
 
--- Scripts:
+
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
