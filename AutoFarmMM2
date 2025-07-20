@@ -1,1 +1,203 @@
-/
+
+local NotificationLibrary = {}
+NotificationLibrary.__index = NotificationLibrary
+
+
+local isMobile = game:GetService("UserInputService"):GetPlatform() == Enum.Platform.IOS or game:GetService("UserInputService"):GetPlatform() == Enum.Platform.Android
+local baseSize = isMobile and 0.3 or 0.2
+
+
+local styles = {
+    Error = {
+        Color = Color3.fromRGB(231, 76, 60),
+        Icon = "❌"
+    },
+    Success = {
+        Color = Color3.fromRGB(46, 204, 113),
+        Icon = "✅"
+    },
+    Warning = {
+        Color = Color3.fromRGB(241, 196, 15),
+        Icon = "⚠️"
+    },
+    Info = {
+        Color = Color3.fromRGB(52, 152, 219),
+        Icon = "ℹ️"
+    }
+}
+
+
+function NotificationLibrary.init()
+    local self = setmetatable({}, NotificationLibrary)
+    self.notifications = {}
+    self.queue = {}
+    self.active = true
+    
+   
+    self.screenGui = Instance.new("ScreenGui")
+    self.screenGui.Name = "NotificationLib"
+    self.screenGui.DisplayOrder = 100
+    self.screenGui.ResetOnSpawn = false
+    self.screenGui.Parent = game:GetService("CoreGui")
+    
+
+    self.container = Instance.new("Frame")
+    self.container.BackgroundTransparency = 1
+    self.container.Size = UDim2.new(0.3, 0, 1, 0)
+    self.container.Position = UDim2.new(0.7, 0, 0.02, 0)
+    self.container.Parent = self.screenGui
+    
+    return self
+end
+
+function NotificationLibrary:Notify(type, message, duration)
+    if not styles[type] then type = "Info" end
+    duration = duration or 5
+    
+    local notificationData = {
+        Type = type,
+        Message = message,
+        Duration = duration
+    }
+    
+    table.insert(self.queue, notificationData)
+    self:processQueue()
+end
+
+
+function NotificationLibrary:processQueue()
+    if #self.queue == 0 or not self.active then return end
+    
+    local data = table.remove(self.queue, 1)
+    self:createNotification(data.Type, data.Message, data.Duration)
+end
+
+
+function NotificationLibrary:createNotification(notifType, message, duration)
+    local style = styles[notifType]
+    
+  
+    local mainFrame = Instance.new("Frame")
+    mainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+    mainFrame.BackgroundTransparency = 0.3
+    mainFrame.Size = UDim2.new(1, -20, 0, 0)
+    mainFrame.Position = UDim2.new(0, 10, 0, -50)
+    mainFrame.ClipsDescendants = true
+    mainFrame.Parent = self.container
+    
+    
+    local innerStroke = Instance.new("Frame")
+    innerStroke.BackgroundTransparency = 0.8
+    innerStroke.BorderSizePixel = 0
+    innerStroke.BackgroundColor3 = style.Color
+    innerStroke.Size = UDim2.new(0, 5, 1, 0)
+    innerStroke.Parent = mainFrame
+    
+  
+    local icon = Instance.new("TextLabel")
+    icon.Text = style.Icon
+    icon.TextSize = isMobile and 28 or 22
+    icon.Size = UDim2.new(0, 40, 0, 40)
+    icon.Position = UDim2.new(0, 15, 0.5, -20)
+    icon.BackgroundTransparency = 1
+    icon.Font = Enum.Font.SourceSansBold
+    icon.TextColor3 = Color3.new(1, 1, 1)
+    icon.Parent = mainFrame
+    
+   
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Text = message
+    textLabel.TextSize = isMobile and 18 or 16
+    textLabel.Font = Enum.Font.SourceSans
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.TextWrapped = true
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.BackgroundTransparency = 1
+    textLabel.Size = UDim2.new(1, -80, 1, -20)
+    textLabel.Position = UDim2.new(0, 60, 0, 10)
+    textLabel.Parent = mainFrame
+    
+    
+    local textHeight = math.ceil(textLabel.TextBounds.Y / (isMobile and 18 or 16)) * (isMobile and 25 or 20)
+    mainFrame.Size = UDim2.new(1, -20, 0, math.clamp(textHeight + 20, 60, 150))
+    
+  
+    local tweenService = game:GetService("TweenService")
+    local appearInfo = TweenInfo.new(
+        0.5,
+        Enum.EasingStyle.Quint,
+        Enum.EasingDirection.Out
+    )
+    
+    local appearTween = tweenService:Create(
+        mainFrame,
+        appearInfo,
+        {Position = UDim2.new(0, 10, 0, 10)}
+    )
+    
+    appearTween:Play()
+    
+    
+    self:updatePositions(mainFrame)
+    
+    
+    task.delay(duration, function()
+        if not mainFrame then return end
+        
+        
+        local disappearInfo = TweenInfo.new(
+            0.7,
+            Enum.EasingStyle.Quint,
+            Enum.EasingDirection.In
+        )
+        
+        local disappearTween = tweenService:Create(
+            mainFrame,
+            disappearInfo,
+            {Position = UDim2.new(0, 10, 0, -mainFrame.AbsoluteSize.Y)}
+        )
+        
+        disappearTween:Play()
+        
+        disappearTween.Completed:Connect(function()
+            if mainFrame then
+                mainFrame:Destroy()
+                self:cleanupNotifications()
+            end
+        end)
+    end)
+end
+
+
+function NotificationLibrary:updatePositions(newNotification)
+    local spacing = 10
+    local totalHeight = 10
+    
+    for _, notification in ipairs(self.container:GetChildren()) do
+        if notification:IsA("Frame") and notification ~= newNotification then
+            notification.Position = UDim2.new(0, 10, 0, totalHeight)
+            totalHeight += notification.AbsoluteSize.Y + spacing
+        end
+    end
+end
+
+
+function NotificationLibrary:cleanupNotifications()
+    for i, notification in ipairs(self.container:GetChildren()) do
+        if not notification:IsA("Frame") then
+            table.remove(self.container:GetChildren(), i)
+        end
+    end
+    self:processQueue()
+end
+
+
+function NotificationLibrary:Destroy()
+    self.active = false
+    self.screenGui:Destroy()
+    self.notifications = nil
+    self.queue = nil
+end
+
+return NotificationLibrary.init()
+
