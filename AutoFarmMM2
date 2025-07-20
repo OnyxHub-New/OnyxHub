@@ -324,7 +324,7 @@ end)
 
 
 if isMobile then
-    topBar.Size = UDim2.new(0, 300, 0, 50)
+    topBar.Size = UDim2.new(0, 350, 0, 50)
     topBar.Position = UDim2.new(0.5, -140, 0, 20)
     
     title.TextSize = 16
