@@ -1,203 +1,372 @@
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
-local NotificationLibrary = {}
-NotificationLibrary.__index = NotificationLibrary
+local player = Players.LocalPlayer
+local gui = Instance.new("ScreenGui")
+gui.Name = "OnyxHub"
+gui.ResetOnSpawn = false
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = player.PlayerGui
+
+local AkaliNotif = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/Dynissimo/main/Scripts/AkaliNotif.lua"))();
+local Notify = AkaliNotif.Notify;
+
+local isMobile = UserInputService.TouchEnabled
+local EASING_STYLE = Enum.EasingStyle.Quint
+local EASING_DIRECTION = Enum.EasingDirection.Out
+local ANIM_DURATION = 0.4
 
 
-local isMobile = game:GetService("UserInputService"):GetPlatform() == Enum.Platform.IOS or game:GetService("UserInputService"):GetPlatform() == Enum.Platform.Android
-local baseSize = isMobile and 0.3 or 0.2
-
-
-local styles = {
-    Error = {
-        Color = Color3.fromRGB(231, 76, 60),
-        Icon = "❌"
-    },
-    Success = {
-        Color = Color3.fromRGB(46, 204, 113),
-        Icon = "✅"
-    },
-    Warning = {
-        Color = Color3.fromRGB(241, 196, 15),
-        Icon = "⚠️"
-    },
-    Info = {
-        Color = Color3.fromRGB(52, 152, 219),
-        Icon = "ℹ️"
-    }
+local colors = {
+    background = Color3.fromRGB(25, 25, 35),
+    header = Color3.fromRGB(40, 40, 55),
+    accent = Color3.fromRGB(100, 70, 200),
+    text = Color3.fromRGB(240, 240, 240),
+    button = Color3.fromRGB(50, 50, 70),
+    buttonHover = Color3.fromRGB(65, 65, 90),
+    stroke = Color3.fromRGB(100, 70, 200)
 }
 
 
-function NotificationLibrary.init()
-    local self = setmetatable({}, NotificationLibrary)
-    self.notifications = {}
-    self.queue = {}
-    self.active = true
-    
-   
-    self.screenGui = Instance.new("ScreenGui")
-    self.screenGui.Name = "NotificationLib"
-    self.screenGui.DisplayOrder = 100
-    self.screenGui.ResetOnSpawn = false
-    self.screenGui.Parent = game:GetService("CoreGui")
-    
+local topBar = Instance.new("Frame")
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(0, 300, 0, 40)
+topBar.Position = UDim2.new(0.5, -150, 0, 20)
+topBar.BackgroundColor3 = colors.header
+topBar.BorderSizePixel = 0
 
-    self.container = Instance.new("Frame")
-    self.container.BackgroundTransparency = 1
-    self.container.Size = UDim2.new(0.3, 0, 1, 0)
-    self.container.Position = UDim2.new(0.7, 0, 0.02, 0)
-    self.container.Parent = self.screenGui
-    
-    return self
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = topBar
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Text = "Onyx HUB Ware | Auto Farm Version"
+title.Font = Enum.Font.GothamSemibold
+title.TextSize = 14
+title.TextColor3 = colors.text
+title.BackgroundTransparency = 1
+title.Size = UDim2.new(0.7, 0, 1, 0)
+title.Position = UDim2.new(0.05, 0, 0, 0)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = topBar
+
+local toggleBtn = Instance.new("ImageButton")
+toggleBtn.Name = "ToggleButton"
+toggleBtn.Size = UDim2.new(0, 30, 0, 30)
+toggleBtn.Position = UDim2.new(1, -35, 0.5, -15)
+toggleBtn.BackgroundTransparency = 1
+toggleBtn.Image = "rbxassetid://3926305904"
+toggleBtn.ImageRectOffset = Vector2.new(884, 284)
+toggleBtn.ImageRectSize = Vector2.new(36, 36)
+toggleBtn.Parent = topBar
+
+
+local menuFrame = Instance.new("Frame")
+menuFrame.Name = "Menu"
+menuFrame.Size = UDim2.new(1, 0, 0, 0)
+menuFrame.Position = UDim2.new(0, 0, 1, -5)
+menuFrame.BackgroundColor3 = colors.background
+menuFrame.BorderSizePixel = 0
+menuFrame.ClipsDescendants = true
+
+local menuCorner = Instance.new("UICorner")
+menuCorner.CornerRadius = UDim.new(0, 12)
+menuCorner.Parent = menuFrame
+
+
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -20, 1, -20)
+content.Position = UDim2.new(0, 10, 0, 10)
+content.BackgroundTransparency = 1
+content.Parent = menuFrame
+
+
+local avatarFrame = Instance.new("Frame")
+avatarFrame.Name = "AvatarFrame"
+avatarFrame.Size = UDim2.new(1, 0, 0, 60)
+avatarFrame.BackgroundTransparency = 1
+avatarFrame.Parent = content
+
+local avatar = Instance.new("ImageLabel")
+avatar.Name = "Avatar"
+avatar.Size = UDim2.new(0, 50, 0, 50)
+avatar.Position = UDim2.new(0, 0, 0.5, -25)
+avatar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+avatar.BorderSizePixel = 0
+avatar.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=".. player.UserId .."&width=420&height=420&format=png"
+
+local avatarCorner = Instance.new("UICorner")
+avatarCorner.CornerRadius = UDim.new(1, 0)
+avatarCorner.Parent = avatar
+avatar.Parent = avatarFrame
+
+local username = Instance.new("TextLabel")
+username.Name = "Username"
+username.Text = player.Name
+username.Font = Enum.Font.GothamBold
+username.TextSize = 16
+username.TextColor3 = colors.text
+username.BackgroundTransparency = 1
+username.Size = UDim2.new(1, -60, 0, 30)
+username.Position = UDim2.new(0, 60, 0.5, -15)
+username.TextXAlignment = Enum.TextXAlignment.Left
+username.Parent = avatarFrame
+
+local infoFrame = Instance.new("Frame")
+infoFrame.Name = "InfoFrame"
+infoFrame.Size = UDim2.new(1, 0, 0, 110)  
+infoFrame.Position = UDim2.new(0, 0, 0, 70)
+infoFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+infoFrame.BackgroundTransparency = 0
+infoFrame.Parent = content
+
+local infoCorner = Instance.new("UICorner")
+infoCorner.CornerRadius = UDim.new(0, 12)
+infoCorner.Parent = infoFrame
+
+local infoStroke = Instance.new("UIStroke")
+infoStroke.Color = colors.stroke
+infoStroke.Thickness = 1
+infoStroke.Parent = infoFrame
+
+
+local infoContainer = Instance.new("Frame")
+infoContainer.Name = "InfoContainer"
+infoContainer.Size = UDim2.new(1, -20, 1, -20)
+infoContainer.Position = UDim2.new(0, 10, 0, 10)
+infoContainer.BackgroundTransparency = 1
+infoContainer.Parent = infoFrame
+
+
+
+
+local buttonsFrame = Instance.new("Frame")
+buttonsFrame.Name = "Buttons"
+buttonsFrame.Size = UDim2.new(1, 0, 0, 150)
+buttonsFrame.Position = UDim2.new(0, 0, 0, 190)  
+buttonsFrame.BackgroundTransparency = 1
+buttonsFrame.Parent = content
+
+local topBarStroke = Instance.new("UIStroke")
+topBarStroke.Color = colors.stroke
+topBarStroke.Thickness = 2
+topBarStroke.Parent = topBar
+
+local avatarStroke = Instance.new("UIStroke")
+avatarStroke.Color = colors.stroke
+avatarStroke.Thickness = 2
+avatarStroke.Parent = avatar
+
+local function createInfoLabel(yPosition, text)
+    local label = Instance.new("TextLabel")
+    label.Text = text
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 14
+    label.TextColor3 = Color3.fromRGB(180, 180, 200)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1, 0, 0, 20)
+    label.Position = UDim2.new(0, 0, 0, yPosition)
+    label.Parent = infoContainer
+    return label
 end
 
-function NotificationLibrary:Notify(type, message, duration)
-    if not styles[type] then type = "Info" end
-    duration = duration or 5
-    
-    local notificationData = {
-        Type = type,
-        Message = message,
-        Duration = duration
-    }
-    
-    table.insert(self.queue, notificationData)
-    self:processQueue()
-end
+
+createInfoLabel(0, "Auto Farm Script")
+createInfoLabel(20, "Version: 1.0")
+createInfoLabel(40, "Status: Working")
+createInfoLabel(60, "Game: Murder Mystery 2")
 
 
-function NotificationLibrary:processQueue()
-    if #self.queue == 0 or not self.active then return end
-    
-    local data = table.remove(self.queue, 1)
-    self:createNotification(data.Type, data.Message, data.Duration)
-end
+local telegramLabel = createInfoLabel(80, "t.me/OnyxHub")
+telegramLabel.TextColor3 = colors.accent
+telegramLabel.Font = Enum.Font.GothamBold
 
 
-function NotificationLibrary:createNotification(notifType, message, duration)
-    local style = styles[notifType]
+telegramLabel.MouseEnter:Connect(function()
+    game:GetService("TweenService"):Create(
+        telegramLabel,
+        TweenInfo.new(0.2),
+        {TextColor3 = Color3.fromRGB(140, 100, 255)}
+    ):Play()
+end)
+
+telegramLabel.MouseLeave:Connect(function()
+    game:GetService("TweenService"):Create(
+        telegramLabel,
+        TweenInfo.new(0.2),
+        {TextColor3 = colors.accent}
+    ):Play()
+end)
+
+telegramLabel.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        setclipboard("t.me/OnyxHub")
+        Notify({
+            Description = "Copied!";
+            Title = "Onyx Hub";
+            Duration = 2;
+        })
+    end
+end)
+
+local function createButton(name, text)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Text = text
+    btn.Font = Enum.Font.GothamSemibold
+    btn.TextSize = 14
+    btn.TextColor3 = colors.text
+    btn.BackgroundColor3 = colors.button
+    btn.AutoButtonColor = false
+    btn.Size = UDim2.new(1, 0, 0, 35)
     
-  
-    local mainFrame = Instance.new("Frame")
-    mainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-    mainFrame.BackgroundTransparency = 0.3
-    mainFrame.Size = UDim2.new(1, -20, 0, 0)
-    mainFrame.Position = UDim2.new(0, 10, 0, -50)
-    mainFrame.ClipsDescendants = true
-    mainFrame.Parent = self.container
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    btnCorner.Parent = btn
     
+    local hover = false
     
-    local innerStroke = Instance.new("Frame")
-    innerStroke.BackgroundTransparency = 0.8
-    innerStroke.BorderSizePixel = 0
-    innerStroke.BackgroundColor3 = style.Color
-    innerStroke.Size = UDim2.new(0, 5, 1, 0)
-    innerStroke.Parent = mainFrame
-    
-  
-    local icon = Instance.new("TextLabel")
-    icon.Text = style.Icon
-    icon.TextSize = isMobile and 28 or 22
-    icon.Size = UDim2.new(0, 40, 0, 40)
-    icon.Position = UDim2.new(0, 15, 0.5, -20)
-    icon.BackgroundTransparency = 1
-    icon.Font = Enum.Font.SourceSansBold
-    icon.TextColor3 = Color3.new(1, 1, 1)
-    icon.Parent = mainFrame
-    
-   
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Text = message
-    textLabel.TextSize = isMobile and 18 or 16
-    textLabel.Font = Enum.Font.SourceSans
-    textLabel.TextColor3 = Color3.new(1, 1, 1)
-    textLabel.TextWrapped = true
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.BackgroundTransparency = 1
-    textLabel.Size = UDim2.new(1, -80, 1, -20)
-    textLabel.Position = UDim2.new(0, 60, 0, 10)
-    textLabel.Parent = mainFrame
-    
-    
-    local textHeight = math.ceil(textLabel.TextBounds.Y / (isMobile and 18 or 16)) * (isMobile and 25 or 20)
-    mainFrame.Size = UDim2.new(1, -20, 0, math.clamp(textHeight + 20, 60, 150))
-    
-  
-    local tweenService = game:GetService("TweenService")
-    local appearInfo = TweenInfo.new(
-        0.5,
-        Enum.EasingStyle.Quint,
-        Enum.EasingDirection.Out
-    )
-    
-    local appearTween = tweenService:Create(
-        mainFrame,
-        appearInfo,
-        {Position = UDim2.new(0, 10, 0, 10)}
-    )
-    
-    appearTween:Play()
-    
-    
-    self:updatePositions(mainFrame)
-    
-    
-    task.delay(duration, function()
-        if not mainFrame then return end
-        
-        
-        local disappearInfo = TweenInfo.new(
-            0.7,
-            Enum.EasingStyle.Quint,
-            Enum.EasingDirection.In
-        )
-        
-        local disappearTween = tweenService:Create(
-            mainFrame,
-            disappearInfo,
-            {Position = UDim2.new(0, 10, 0, -mainFrame.AbsoluteSize.Y)}
-        )
-        
-        disappearTween:Play()
-        
-        disappearTween.Completed:Connect(function()
-            if mainFrame then
-                mainFrame:Destroy()
-                self:cleanupNotifications()
-            end
-        end)
+    btn.MouseEnter:Connect(function()
+        hover = true
+        game:GetService("TweenService"):Create(
+            btn,
+            TweenInfo.new(0.2),
+            {BackgroundColor3 = colors.buttonHover}
+        ):Play()
     end)
-end
-
-
-function NotificationLibrary:updatePositions(newNotification)
-    local spacing = 10
-    local totalHeight = 10
     
-    for _, notification in ipairs(self.container:GetChildren()) do
-        if notification:IsA("Frame") and notification ~= newNotification then
-            notification.Position = UDim2.new(0, 10, 0, totalHeight)
-            totalHeight += notification.AbsoluteSize.Y + spacing
+    btn.MouseLeave:Connect(function()
+        hover = false
+        wait(0.1)
+        if not hover then
+            game:GetService("TweenService"):Create(
+                btn,
+                TweenInfo.new(0.2),
+                {BackgroundColor3 = colors.button}
+            ):Play()
         end
+    end)
+    
+    return btn
+end
+
+local startBtn = createButton("Start", "Start Farming")
+startBtn.Position = UDim2.new(0, 0, 0, 0)
+startBtn.Parent = buttonsFrame
+
+local stopBtn = createButton("Stop", "Stop Farming")
+stopBtn.Position = UDim2.new(0, 0, 0, 45)
+stopBtn.Parent = buttonsFrame
+
+
+
+menuFrame.Parent = topBar
+topBar.Parent = gui
+
+
+local menuToggled = false
+local targetHeight = 360
+
+toggleBtn.MouseButton1Click:Connect(function()
+    menuToggled = not menuToggled
+    local targetSize = menuToggled and UDim2.new(1, 0, 0, targetHeight) or UDim2.new(1, 0, 0, 0)
+    
+    local tweenInfo = TweenInfo.new(
+        ANIM_DURATION,
+        EASING_STYLE,
+        EASING_DIRECTION
+    )
+    
+    local tween = TweenService:Create(menuFrame, tweenInfo, {Size = targetSize})
+    tween:Play()
+end)
+
+local dragging = false
+local dragStartPos
+local guiStartPos
+
+local function updatePosition(input)
+    if dragging then
+        local delta = input.Position - dragStartPos
+        topBar.Position = UDim2.new(
+            guiStartPos.X.Scale,
+            guiStartPos.X.Offset + delta.X,
+            guiStartPos.Y.Scale,
+            guiStartPos.Y.Offset + delta.Y
+        )
     end
 end
 
-
-function NotificationLibrary:cleanupNotifications()
-    for i, notification in ipairs(self.container:GetChildren()) do
-        if not notification:IsA("Frame") then
-            table.remove(self.container:GetChildren(), i)
-        end
+topBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStartPos = input.Position
+        guiStartPos = topBar.Position
     end
-    self:processQueue()
+end)
+
+topBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        updatePosition(input)
+    end
+end)
+
+
+if isMobile then
+    topBar.Size = UDim2.new(0, 280, 0, 50)
+    topBar.Position = UDim2.new(0.5, -140, 0, 20)
+    
+    title.TextSize = 16
+    toggleBtn.Size = UDim2.new(0, 40, 0, 40)
+    toggleBtn.Position = UDim2.new(1, -45, 0.5, -20)
+    
+    avatar.Size = UDim2.new(0, 60, 0, 60)
+    avatar.Position = UDim2.new(0, 0, 0.5, -30)
+    username.TextSize = 18
+    scriptInfo.TextSize = 16
+    
+    startBtn.TextSize = 16
+    stopBtn.TextSize = 16
+    settingsBtn.TextSize = 16
+    
+    infoFrame.Size = UDim2.new(1, 0, 0, 130)
+    createInfoLabel(0, "Auto Farm Script").TextSize = 16
+    createInfoLabel(20, "Version: 1.0").TextSize = 16
+    createInfoLabel(40, "Status: Working").TextSize = 16
+    createInfoLabel(60, "Game: Murder Mystery 2").TextSize = 16
+    createInfoLabel(80, "t.me/OnyxHub").TextSize = 16
+    
+    
+    buttonsFrame.Position = UDim2.new(0, 0, 0, 210)
+    
+    
+    targetHeight = 400
 end
 
 
-function NotificationLibrary:Destroy()
-    self.active = false
-    self.screenGui:Destroy()
-    self.notifications = nil
-    self.queue = nil
-end
+startBtn.MouseButton1Click:Connect(function()
+    print("Farming started!")
+end)
 
-return NotificationLibrary.init()
+stopBtn.MouseButton1Click:Connect(function()
+    print("Farming stopped!")
+end)
 
+
+setclipboard("t.me/OnyxHub")
+Notify({
+    Description = "Menu loaded successfully";
+    Title = "Onyx Hub";
+    Duration = 5;
+    });
