@@ -307,35 +307,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-if isMobile then
-    topBar.Size = UDim2.new(0, 350, 0, 50)
-    topBar.Position = UDim2.new(0.5, -140, 0, 20)
-    
-    title.TextSize = 16
-    toggleBtn.Size = UDim2.new(0, 40, 0, 40)
-    toggleBtn.Position = UDim2.new(1, -45, 0.5, -20)
-    
-    avatar.Size = UDim2.new(0, 60, 0, 60)
-    avatar.Position = UDim2.new(0, 0, 0.5, -30)
-    username.TextSize = 18
-   
-    
-    startBtn.TextSize = 16
-    stopBtn.TextSize = 16
-   
-    
-    infoFrame.Size = UDim2.new(1, 0, 0, 130)
-    createInfoLabel(0, "Auto Farm Script").TextSize = 16
-    createInfoLabel(20, "Version: 1.0").TextSize = 16
-    createInfoLabel(40, "Status: Working").TextSize = 16
-    createInfoLabel(60, "Game: Murder Mystery 2").TextSize = 16
-    createInfoLabel(80, "t.me/OnyxHub").TextSize = 16
-    
-    buttonsFrame.Position = UDim2.new(0, 0, 0, 210)
-    
-    targetHeight = 400
-end
-
 
 
 local autofarmEnabled = false
