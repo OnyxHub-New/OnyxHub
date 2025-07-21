@@ -318,11 +318,11 @@ if isMobile then
     avatar.Size = UDim2.new(0, 60, 0, 60)
     avatar.Position = UDim2.new(0, 0, 0.5, -30)
     username.TextSize = 18
-    scriptInfo.TextSize = 16
+   
     
     startBtn.TextSize = 16
     stopBtn.TextSize = 16
-    settingsBtn.TextSize = 16
+   
     
     infoFrame.Size = UDim2.new(1, 0, 0, 130)
     createInfoLabel(0, "Auto Farm Script").TextSize = 16
