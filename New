@@ -2504,7 +2504,7 @@ local function getObjGen()
 
             return Gui.UIObjects
         end
-
+        
         return initObj()
     end
 
@@ -2533,6 +2533,7 @@ local function getObjGen()
         end
     end
 
+  
     return objGen
 end
 
@@ -5520,17 +5521,29 @@ end
 
 
 
-UILibrary.MainUI = script.Parent:WaitForChild("Window"):WaitForChild("MainUI")
 
+function UILibrary:FindMainUI()
+    if self.MainUI and self.MainUI:IsA("Frame") then
+        return self.MainUI
+    end
 
-local UserInputService = game:GetService("UserInputService")
-local isVisible = true
+    local gui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+    for _, screen in ipairs(gui:GetChildren()) do
+        local mainUI = screen:FindFirstChild("MainUI")
+        if mainUI then
+            self.MainUI = mainUI
+            return mainUI
+        end
+    end
+end
+
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.M and not gameProcessed then
-        isVisible = not isVisible
-        UILibrary.MainUI.Visible = isVisible
+        local mainUI = UILibrary:FindMainUI()
+        if mainUI then
+            mainUI.Visible = not mainUI.Visible
+        end
     end
 end)
-
 return UILibrary
