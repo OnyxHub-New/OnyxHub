@@ -5519,11 +5519,17 @@ function UILibrary.Section:Dropdown(sett, callback)
 end
 
 
+
+UILibrary.MainUI = script.Parent:WaitForChild("Window"):WaitForChild("MainUI")
+
+
 local UserInputService = game:GetService("UserInputService")
+local isVisible = true
 
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if input.KeyCode == Enum.KeyCode.M and not gameProcessed then
-        Gui.MainUI.Visible = not Gui.MainUI.Visible
+        isVisible = not isVisible
+        UILibrary.MainUI.Visible = isVisible
     end
 end)
 
